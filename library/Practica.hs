@@ -45,9 +45,12 @@ transfer gold fromAcc toAcc = do
 giveItem :: Item -> Inventory -> Inventory -> STM Bool
 giveItem item fromInv toInv = do
     fromList <- readTVar fromInv
-    case removeInv item fromList of
+    toList <- readTVar toInv
+removeInv item fromList of
       Nothing      -> return False
       Just newList -> do
+        writeTVar fromInv newList
+        writeTVar toInv (toList ++ [item])
         return True
 
 -- Vender un Item, ver si la firma es la correcta
