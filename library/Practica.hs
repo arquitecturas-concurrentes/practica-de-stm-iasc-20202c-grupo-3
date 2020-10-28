@@ -36,7 +36,9 @@ removeInv x xs =
 transfer :: Int -> Account -> Account -> STM ()
 transfer gold fromAcc toAcc = do
     fromQty <- readTVar fromAcc
-    writeTVar toAcc (fromQty + qty)
+    toQty <- readTVar toAcc
+    writeTVar toAcc (toQty + qty)
+    writeTVar fromAcc (fromQty - qty)
 
 -- Transferir un item
 -- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar
