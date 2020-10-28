@@ -10,8 +10,8 @@ import Control.Concurrent.STM
 import Practica
 
 newPlayer :: Int -> HitPoint -> InventoryOut -> STM Player
-newPlayer balance health inventory =
-    Player `liftM` newTVar balance
+newPlayer account health inventory =
+    Player `liftM` newTVar account
               `ap` newTVar health
               `ap` newTVar inventory
 
