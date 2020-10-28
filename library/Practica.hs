@@ -57,4 +57,4 @@ removeInv item fromList of
 -- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar  
 sellItem :: Item -> Int -> Player -> Player -> ()
 sellItem item price buyer seller = do
-  transfer price (balance buyer) (balance seller)
+  transfer price (account buyer) (account seller)
