@@ -37,8 +37,10 @@ transfer :: Int -> Account -> Account -> STM ()
 transfer gold fromAcc toAcc = do
     fromQty <- readTVar fromAcc
     toQty <- readTVar toAcc
-    writeTVar toAcc (toQty + qty)
-    writeTVar fromAcc (fromQty - qty)
+    when(gold > fromQty)
+      retry
+    writeTVar toAcc (toQty + gold)
+    writeTVar fromAcc (fromQty - gold)
 
 -- Transferir un item
 -- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar
@@ -46,8 +48,8 @@ giveItem :: Item -> Inventory -> Inventory -> STM Bool
 giveItem item fromInv toInv = do
     fromList <- readTVar fromInv
     toList <- readTVar toInv
-removeInv item fromList of
-      Nothing      -> return False
+    case removeInv item fromList of
+      Nothing      -> retry
       Just newList -> do
         writeTVar fromInv newList
         writeTVar toInv (toList ++ [item])
@@ -55,6 +57,10 @@ removeInv item fromList of
 
 -- Vender un Item, ver si la firma es la correcta
 -- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar  
-sellItem :: Item -> Int -> Player -> Player -> ()
+sellItem :: Item -> Int -> Player -> Player -> STM()
 sellItem item price buyer seller = do
+  giveItem item (inventory seller) (inventory buyer)
   transfer price (account buyer) (account seller)
+  `orElse`
+  return ()
+

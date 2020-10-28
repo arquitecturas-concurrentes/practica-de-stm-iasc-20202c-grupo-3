@@ -9,6 +9,8 @@ import Control.Monad
 import Control.Concurrent.STM
 import Practica
 
+import System.IO
+
 newPlayer :: Int -> HitPoint -> InventoryOut -> STM Player
 newPlayer account health inventory =
     Player `liftM` newTVar account
@@ -28,6 +30,7 @@ giveItemTest = do
     giveItem RedScroll (inventory caballero) (inventory mago)
     liftM2 (,) (readTVar (inventory caballero)) (readTVar (inventory mago)) 
 
+sellItemTestCheckInventory :: STM ([Item], [Item])
 sellItemTestCheckInventory = do
     caballero <- newPlayer 20 (100 :: HitPoint) [Axe, RedScroll]
     mago <- newPlayer 20 (100 :: HitPoint) []
@@ -39,7 +42,33 @@ sellItemTestCheckAccount = do
     mago <- newPlayer 20 (100 :: HitPoint) []
     sellItem RedScroll 10 mago caballero
     liftM2 (,) (readTVar (account caballero)) (readTVar (account mago))
-    
+
+failSellMissingItemCheckInventory = do
+    caballero <- newPlayer 20 (100 :: HitPoint) [Axe]
+    mago <- newPlayer 20 (100 :: HitPoint) []
+    sellItem RedScroll 10 mago caballero
+    liftM2 (,) (readTVar (inventory caballero)) (readTVar (inventory mago))
+
+failSellMissingItemCheckAccount = do
+    caballero <- newPlayer 20 (100 :: HitPoint) [Axe]
+    mago <- newPlayer 20 (100 :: HitPoint) []
+    sellItem RedScroll 10 mago caballero
+    liftM2 (,) (readTVar (account caballero)) (readTVar (account mago))
+
+
+failSellNotEnoughGoldCheckInventory = do
+    caballero <- newPlayer 20 (100 :: HitPoint) [Axe, RedScroll]
+    mago <- newPlayer 20 (100 :: HitPoint) []
+    sellItem RedScroll 100 mago caballero
+    liftM2 (,) (readTVar (inventory caballero)) (readTVar (inventory mago))
+
+failSellNotEnoughGoldCheckGold = do
+    caballero <- newPlayer 20 (100 :: HitPoint) [Axe, RedScroll]
+    mago <- newPlayer 20 (100 :: HitPoint) []
+    sellItem RedScroll 100 mago caballero
+    liftM2 (,) (readTVar (account caballero)) (readTVar (account mago))
+
+
 main :: IO ()
 main = do
     test <- testSpec "iasc-stm-practica" spec
@@ -61,3 +90,16 @@ spec = parallel $ do
         
         it "Should transfer the gold from the sold" $ do
             atomically (sellItemTestCheckAccount) `shouldReturn` (30, 10)
+
+        it "Should not give the item when missing item" $ do
+            atomically (failSellMissingItemCheckInventory) `shouldReturn` ([Axe], [])
+
+        it "Should not transfer gold when missing item" $ do
+            atomically (failSellMissingItemCheckAccount) `shouldReturn` (20, 20)
+
+        it "Should not give the item when missing gold" $ do
+            atomically (failSellNotEnoughGoldCheckInventory) `shouldReturn` ([Axe,RedScroll], [])
+
+        it "Should not transfer gold when missing gold" $ do
+            atomically (failSellNotEnoughGoldCheckGold) `shouldReturn` (20, 20)
+
