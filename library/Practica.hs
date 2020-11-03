@@ -32,7 +32,6 @@ removeInv x xs =
       (prefix, (_ : suffix)) -> Just $ prefix ++ suffix
 
 -- Transferir oro de una cuenta a otra
--- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar
 transfer :: Int -> Account -> Account -> STM ()
 transfer gold fromAcc toAcc = do
     fromQty <- readTVar fromAcc
@@ -43,8 +42,7 @@ transfer gold fromAcc toAcc = do
     writeTVar fromAcc (fromQty - gold)
 
 -- Transferir un item
--- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar
-giveItem :: Item -> Inventory -> Inventory -> STM Bool
+giveItem :: Item -> Inventory -> Inventory -> STM ()
 giveItem item fromInv toInv = do
     fromList <- readTVar fromInv
     toList <- readTVar toInv
@@ -53,7 +51,6 @@ giveItem item fromInv toInv = do
       Just newList -> do
         writeTVar fromInv newList
         writeTVar toInv (toList ++ [item])
-        return True
 
 -- Vender un Item, ver si la firma es la correcta
 -- Nota: Lo que hay es una intuicion, el codigo esta incompleto y hay cosas por agregar  
